@@ -1,0 +1,28 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Flutter
+        run: |
+          git clone https://github.com/flutter/flutter.git --depth 1
+          echo "
+export PATH=
+  `pwd`/flutter/bin:
+  $PATH" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
