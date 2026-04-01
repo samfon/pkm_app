@@ -30,23 +30,18 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Validate Secrets
+      - name: Setup Keystore (Optional)
         run: |
-          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then echo "Error: KEYSTORE_BASE64 is empty" && exit 1; fi
-          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then echo "Error: KEY_ALIAS is empty" && exit 1; fi
-          if [ -z "${{ secrets.KEY_PASSWORD }}" ]; then echo "Error: KEY_PASSWORD is empty" && exit 1; fi
-          if [ -z "${{ secrets.STORE_PASSWORD }}" ]; then echo "Error: STORE_PASSWORD is empty" && exit 1; fi
-
-      - name: Decode Keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d -i > android/app/release_key.jks
-
-      - name: Setup key.properties
-        run: |
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storeFile=release_key.jks" >> android/key.properties
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ] && [ -n "${{ secrets.KEY_ALIAS }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d -i > android/app/release_key.jks
+            echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+            echo "storeFile=release_key.jks" >> android/key.properties
+            echo "Keystore secrets found. Ready for signing."
+          else
+            echo "Keystore Secrets are missing or incomplete. Skipping building key.properties. App will use Debug fallback signing automatically."
+          fi
 
       - name: Build Signed APK
         run: flutter build apk --release
