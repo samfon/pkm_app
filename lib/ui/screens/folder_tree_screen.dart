@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/db_provider.dart';
-import '../models/folder.dart';
-import '../models/note.dart';
+import '../../providers/db_provider.dart';
+import '../../models/folder.dart';
+import '../../models/note.dart';
 import 'note_editor_screen.dart';
 
 class FolderTreeScreen extends ConsumerStatefulWidget {

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:responsive_builder/responsive_builder.dart';
-import '../providers/db_provider.dart';
-import '../providers/app_providers.dart';
+import '../../providers/db_provider.dart';
+import '../../providers/app_providers.dart';
 import 'folder_tree_screen.dart';
 import 'settings_screen.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+
+// Conditional import for platform check
+import '../../services/platform_utils_web.dart'
+    if (dart.library.io) '../../services/platform_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -21,7 +23,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!kIsWeb && Platform.isAndroid) {
+      if (isAndroidPlatform) {
          ref.read(otaUpdateServiceProvider).checkForUpdate((version, url) {
              _showUpdateDialog(version, url);
          });
@@ -60,12 +62,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       bool isLogged = await syncService.signIn();
       if (isLogged) {
         await syncService.syncData();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đồng bộ lên Drive thành công!')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đồng bộ lên Drive thành công!')));
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đăng nhập Google thất bại!')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đăng nhập Google thất bại!')));
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi đồng bộ: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi đồng bộ: $e')));
+      }
     } finally {
       ref.read(syncLoadingProvider.notifier).setSyncing(false);
     }
@@ -76,7 +84,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final noteList = ref.watch(noteListProvider);
     final isSyncing = ref.watch(syncLoadingProvider);
     
-    // Logic tính toán "Đã X ngày chưa update"
     DateTime? lastUpdate;
     if (noteList.isNotEmpty) {
       lastUpdate = noteList.map((n) => n.lastModified).reduce((a, b) => a.isAfter(b) ? a : b);
@@ -160,7 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: [
         const SizedBox(
           width: 350,
-          child: FolderTreeScreen(), // Left sidebar
+          child: FolderTreeScreen(),
         ),
         VerticalDivider(width: 1, color: Colors.grey.shade300),
         Expanded(

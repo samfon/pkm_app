@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/drive_sync_service.dart';
 import '../services/gemini_ai_service.dart';
@@ -14,8 +15,8 @@ final geminiAiServiceProvider = Provider<GeminiAiService>((ref) {
   return GeminiAiService();
 });
 
-final otaUpdateServiceProvider = Provider<OtaUpdateService>((ref) {
-  return OtaUpdateService();
+final otaUpdateServiceProvider = Provider<OtaUpdateServiceBase>((ref) {
+  return createOtaUpdateService();
 });
 
 // Sync State Notifier provider
